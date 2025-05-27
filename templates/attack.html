@@ -4,182 +4,696 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Attack Analysis</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/kute.js@2.2.4/kute.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body { background: #1a202c; color: #e2e8f0; font-family: 'Arial', sans-serif; }
-        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; }
-        #three-canvas { position: fixed; top: 0; left: 0; z-index: -2; }
-        .form-container, .results-container { background: rgba(45, 55, 72, 0.85); backdrop-filter: blur(10px); }
-        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-        input, button { transition: all 0.3s ease; }
-        input:focus, button:hover { transform: scale(1.05); }
-        #response { opacity: 0; transition: opacity 1s ease; }
-        #response.show { opacity: 1; }
-        .result-item { position: relative; padding-left: 1.5rem; }
-        .result-item:before { content: '•'; position: absolute; left: 0; color: #3b82f6; font-size: 1.2rem; }
+        :root {
+            --primary: #00ff88;
+            --secondary: #00b7ff;
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --light: #f0f0f0;
+            --danger: #ff3860;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            font-weight: 300;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        button {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .result-container {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-content {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            border-left: 4px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .alert-error {
+            background: rgba(255, 56, 96, 0.2);
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .network-visualization {
+            height: 300px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
-    <canvas id="three-canvas"></canvas>
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <div class="form-container max-w-4xl w-full p-8 rounded-lg glow mb-6">
-            <h1 class="text-3xl font-bold text-center text-blue-400 mb-6">Network Attack Analysis</h1>
-            <form id="attackForm" action="/attack_submit" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium">Backward Bulk Bytes</label>
-                    <input type="number" name="bwd_bulk_bytes" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> Network Attack Analyzer</h1>
+            <p class="subtitle">Analyze network traffic patterns to detect potential cyber attacks in real-time</p>
+        </header>
+
+        <div class="network-visualization" id="networkCanvas"></div>
+
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-line"></i> Traffic Features</h2>
+            <form id="attackForm">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="bwd_bulk_bytes">Backward Bulk Bytes</label>
+                        <input type="number" id="bwd_bulk_bytes" name="bwd_bulk_bytes" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fwd_bulk_packets">Forward Bulk Packets</label>
+                        <input type="number" id="fwd_bulk_packets" name="fwd_bulk_packets" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bwd_bulk_packets">Backward Bulk Packets</label>
+                        <input type="number" id="bwd_bulk_packets" name="bwd_bulk_packets" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fwd_bulk_rate">Forward Bulk Rate</label>
+                        <input type="number" id="fwd_bulk_rate" name="fwd_bulk_rate" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bwd_bulk_rate">Backward Bulk Rate</label>
+                        <input type="number" id="bwd_bulk_rate" name="bwd_bulk_rate" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active_min">Active Min</label>
+                        <input type="number" id="active_min" name="active_min" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active_max">Active Max</label>
+                        <input type="number" id="active_max" name="active_max" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active_tot">Active Total</label>
+                        <input type="number" id="active_tot" name="active_tot" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active_avg">Active Avg</label>
+                        <input type="number" id="active_avg" name="active_avg" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active_std">Active Std</label>
+                        <input type="number" id="active_std" name="active_std" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idle_min">Idle Min</label>
+                        <input type="number" id="idle_min" name="idle_min" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idle_max">Idle Max</label>
+                        <input type="number" id="idle_max" name="idle_max" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idle_tot">Idle Total</label>
+                        <input type="number" id="idle_tot" name="idle_tot" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idle_avg">Idle Avg</label>
+                        <input type="number" id="idle_avg" name="idle_avg" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idle_std">Idle Std</label>
+                        <input type="number" id="idle_std" name="idle_std" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fwd_init_window_size">Forward Init Window Size</label>
+                        <input type="number" id="fwd_init_window_size" name="fwd_init_window_size" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bwd_init_window_size">Backward Init Window Size</label>
+                        <input type="number" id="bwd_init_window_size" name="bwd_init_window_size" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fwd_last_window_size">Forward Last Window Size</label>
+                        <input type="number" id="fwd_last_window_size" name="fwd_last_window_size" step="any" required>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium">Forward Bulk Packets</label>
-                    <input type="number" name="fwd_bulk_packets" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Backward Bulk Packets</label>
-                    <input type="number" name="bwd_bulk_packets" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Forward Bulk Rate</label>
-                    <input type="number" name="fwd_bulk_rate" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Backward Bulk Rate</label>
-                    <input type="number" name="bwd_bulk_rate" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Active Min</label>
-                    <input type="number" name="active_min" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Active Max</label>
-                    <input type="number" name="active_max" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Active Total</label>
-                    <input type="number" name="active_tot" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Active Average</label>
-                    <input type="number" name="active_avg" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Active Std</label>
-                    <input type="number" name="active_std" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Idle Min</label>
-                    <input type="number" name="idle_min" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Idle Max</label>
-                    <input type="number" name="idle_max" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Idle Total</label>
-                    <input type="number" name="idle_tot" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Idle Average</label>
-                    <input type="number" name="idle_avg" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Idle Std</label>
-                    <input type="number" name="idle_std" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Forward Init Window Size</label>
-                    <input type="number" name="fwd_init_window_size" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Backward Init Window Size</label>
-                    <input type="number" name="bwd_init_window_size" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Forward Last Window Size</label>
-                    <input type="number" name="fwd_last_window_size" class="mt-1 p-2 w-full bg-gray-700 rounded glow" required>
-                </div>
-                <div class="col-span-2 text-center">
-                    <button type="submit" id="submitBtn" class="p-3 bg-blue-500 text-white rounded glow hover:bg-blue-600">Analyze Attack</button>
-                </div>
+
+                <div class="alert alert-success" id="successAlert"></div>
+                <div class="alert alert-error" id="errorAlert"></div>
+
+                <button type="submit" id="analyzeBtn">
+                    <span id="btnText">Analyze Traffic</span>
+                    <span id="btnSpinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Processing...</span>
+                </button>
             </form>
         </div>
-        <div id="results-container" class="results-container max-w-4xl w-full p-8 rounded-lg glow hidden">
-            <h2 class="text-2xl font-bold text-center text-blue-400 mb-4">Analysis Results</h2>
-            <ul id="response" class="text-left space-y-2"></ul>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Analyzing network patterns...</p>
+        </div>
+
+        <div class="card result-container" id="resultContainer">
+            <h2 class="card-title"><i class="fas fa-search"></i> Analysis Results</h2>
+            <div id="resultsContent"></div>
         </div>
     </div>
 
+    <footer>
+        <p>Network Security Dashboard &copy; 2023 | Powered by AI Threat Detection</p>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/kute.js@2.1.2/dist/kute.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
     <script>
-        // Particle.js
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: '#3b82f6' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.5, random: true },
-                size: { value: 3, random: true },
-                line_linked: { enable: true, distance: 150, color: '#3b82f6', opacity: 0.4, width: 1 },
-                move: { enable: true, speed: 2, direction: 'none', random: false }
+        // Initialize particles.js
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#00ff88"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    }
+                },
+                "opacity": {
+                    "value": 0.3,
+                    "random": false,
+                    "anim": {
+                        "enable": false,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 40,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#00b7ff",
+                    "opacity": 0.2,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
             },
-            interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'repulse' } } }
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
         });
 
-        // Three.js
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-        const material = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true });
-        const torusKnot = new THREE.Mesh(geometry, material);
-        scene.add(torusKnot);
-        camera.position.z = 30;
-        function animate() {
-            requestAnimationFrame(animate);
-            torusKnot.rotation.x += 0.01;
-            torusKnot.rotation.y += 0.01;
-            renderer.render(scene, camera);
+        // Three.js Network Visualization
+        function initNetworkVisualization() {
+            const container = document.getElementById('networkCanvas');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            // Create nodes
+            const nodes = [];
+            const nodeGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const nodeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff88,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            for (let i = 0; i < 10; i++) {
+                const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+                node.position.x = Math.random() * 20 - 10;
+                node.position.y = Math.random() * 10 - 5;
+                node.position.z = Math.random() * 10 - 5;
+                nodes.push(node);
+                scene.add(node);
+            }
+
+            // Create connections
+            const lines = [];
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    if (Math.random() > 0.7) {
+                        const geometry = new THREE.BufferGeometry().setFromPoints([
+                            new THREE.Vector3(
+                                nodes[i].position.x,
+                                nodes[i].position.y,
+                                nodes[i].position.z
+                            ),
+                            new THREE.Vector3(
+                                nodes[j].position.x,
+                                nodes[j].position.y,
+                                nodes[j].position.z
+                            )
+                        ]);
+                        const material = new THREE.LineBasicMaterial({
+                            color: 0x00b7ff,
+                            transparent: true,
+                            opacity: 0.3
+                        });
+                        const line = new THREE.Line(geometry, material);
+                        lines.push(line);
+                        scene.add(line);
+                    }
+                }
+            }
+
+            camera.position.z = 15;
+
+            // Animation
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Rotate nodes slightly
+                nodes.forEach(node => {
+                    node.rotation.x += 0.001;
+                    node.rotation.y += 0.002;
+                });
+
+                // Pulse effect
+                const pulseValue = Math.abs(Math.sin(Date.now() * 0.002)) * 0.2 + 0.8;
+                nodes[0].scale.set(pulseValue, pulseValue, pulseValue);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
         }
-        animate();
 
-        // Kute.js for button
-        const buttonTween = KUTE.fromTo('#submitBtn',
-            { scale: 1 },
-            { scale: 1.1 },
-            { duration: 500, easing: 'easingQuadraticInOut', repeat: Infinity, yoyo: true }
-        ).start();
+        // Initialize network visualization when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initNetworkVisualization();
 
-        // Kute.js for results
-        const resultsTween = KUTE.fromTo('#results-container',
-            { translateY: 50, opacity: 0 },
-            { translateY: 0, opacity: 1 },
-            { duration: 1000, easing: 'easingQuadraticOut' }
-        );
+            // Form submission
+            $('#attackForm').on('submit', function(e) {
+                e.preventDefault();
 
-        // Form Submission
-        document.getElementById('attackForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const response = await fetch('/attack_submit', {
-                method: 'POST',
-                body: formData
+                // Show loading state
+                $('#loadingIndicator').show();
+                $('#analyzeBtn').prop('disabled', true);
+                $('#btnText').hide();
+                $('#btnSpinner').show();
+                $('#errorAlert').hide();
+                $('#successAlert').hide();
+
+                // Submit form data via AJAX
+                $.ajax({
+                    url: '/attack_submit',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Hide loading state
+                        $('#loadingIndicator').hide();
+                        $('#analyzeBtn').prop('disabled', false);
+                        $('#btnText').show();
+                        $('#btnSpinner').hide();
+
+                        if (response.error) {
+                            $('#errorAlert').text(response.error).show();
+                        } else {
+                            // Display results
+                            const results = response.response.split('\n');
+                            let html = '';
+
+                            results.forEach(item => {
+                                if (item.trim() !== '') {
+                                    // Extract title and content
+                                    const parts = item.split(':');
+                                    const title = parts[0].trim();
+                                    const content = parts.slice(1).join(':').trim();
+
+                                    html += `
+                                        <div class="result-item">
+                                            <div class="result-title">
+                                                <i class="fas fa-chevron-right"></i> ${title}
+                                            </div>
+                                            <div class="result-content">${content}</div>
+                                        </div>
+                                    `;
+                                }
+                            });
+
+                            $('#resultsContent').html(html);
+                            $('#resultContainer').fadeIn();
+                            $('#successAlert').text('Analysis completed successfully!').show();
+
+                            // Animate results with Kute.js
+                            const items = document.querySelectorAll('.result-item');
+                            items.forEach((item, index) => {
+                                item.style.opacity = '0';
+                                item.style.transform = 'translateX(-20px)';
+                                KUTE.fromTo(
+                                    item,
+                                    { opacity: 0, translateX: -20 },
+                                    { opacity: 1, translateX: 0 },
+                                    {
+                                        duration: 500,
+                                        delay: index * 100,
+                                        easing: 'easingCubicOut'
+                                    }
+                                ).start();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Hide loading state
+                        $('#loadingIndicator').hide();
+                        $('#analyzeBtn').prop('disabled', false);
+                        $('#btnText').show();
+                        $('#btnSpinner').hide();
+
+                        let errorMsg = 'An error occurred while processing your request.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        }
+                        $('#errorAlert').text(errorMsg).show();
+                    }
+                });
             });
-            const data = await response.json();
-            const responseContainer = document.getElementById('response');
-            const resultsContainer = document.getElementById('results-container');
-            responseContainer.innerHTML = '';
-            data.response.split('\n').forEach(point => {
-                const li = document.createElement('li');
-                li.className = 'result-item';
-                li.textContent = point.trim();
-                responseContainer.appendChild(li);
+
+            // Sample data button for testing
+            $('#sampleDataBtn').on('click', function() {
+                // Fill form with sample data
+                $('#bwd_bulk_bytes').val('12345');
+                $('#fwd_bulk_packets').val('678');
+                $('#bwd_bulk_packets').val('345');
+                $('#fwd_bulk_rate').val('12.34');
+                $('#bwd_bulk_rate').val('56.78');
+                $('#active_min').val('0.1');
+                $('#active_max').val('5.6');
+                $('#active_tot').val('12.3');
+                $('#active_avg').val('2.3');
+                $('#active_std').val('1.2');
+                $('#idle_min').val('0.5');
+                $('#idle_max').val('10.2');
+                $('#idle_tot').val('45.6');
+                $('#idle_avg').val('3.4');
+                $('#idle_std').val('2.1');
+                $('#fwd_init_window_size').val('1024');
+                $('#bwd_init_window_size').val('2048');
+                $('#fwd_last_window_size').val('512');
             });
-            resultsContainer.classList.remove('hidden');
-            resultsContainer.classList.add('show');
-            resultsTween.start();
         });
     </script>
 </body>
