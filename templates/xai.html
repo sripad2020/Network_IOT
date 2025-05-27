@@ -4,101 +4,162 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XAI and LIME Introduction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffe8d6 0%, #d6eaff 100%);
+            color: #1a1a2e;
+            overflow-x: hidden;
+            position: relative;
         }
+
         .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
         }
+
         header {
-            background: #333;
-            color: #fff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #0779e4 3px solid;
-        }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            text-transform: uppercase;
-            font-size: 16px;
-        }
-        header ul {
-            padding: 0;
-            list-style: none;
-        }
-        header li {
-            display: inline;
-            padding: 0 20px 0 20px;
-        }
-        header #branding {
-            float: left;
-        }
-        header #branding h1 {
-            margin: 0;
-        }
-        header nav {
-            float: right;
-            margin-top: 10px;
-        }
-        #showcase {
-            min-height: 400px;
-            background: url('network.jpg') no-repeat 0 -400px;
-            text-align: center;
-            color: #fff;
-        }
-        #showcase h1 {
-            margin-top: 100px;
-            font-size: 55px;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        #showcase p {
-            font-size: 20px;
-        }
-        section {
-            padding: 20px 0;
-            border-bottom: #0779e4 1px solid;
-        }
-        section h2 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-        section p {
-            color: #666;
-        }
-         .content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            background: #ffffff;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header #branding h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ff7b25;
+        }
+
+        header nav ul {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        header nav a {
+            color: #1a1a2e;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        header nav a:hover {
+            color: #ff7b25;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #ff7b25;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ff7b25;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .card ul, .card ol {
+            color: #4b5563;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .card ul li, .card ol li {
+            margin-bottom: 0.5rem;
         }
 
         .links {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .links h2 {
-            margin-top: 0;
-        }
-        .links a {
-            display: block;
-            color: #007bff;
-            text-decoration: none;
-            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
+        .links h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ff7b25;
+            margin-bottom: 1rem;
+        }
+
+        .links a {
+            display: block;
+            color: #ff7b25;
+            text-decoration: none;
+            margin: 0.5rem 0;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: #f97316;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            header nav ul {
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .card h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -111,8 +172,9 @@
                 <ul>
                     <li><a href="/attack">Attack</a></li>
                     <li><a href="/protocol">Protocol</a></li>
-                    <li><a href="/model_metrics">Model Analysis</a></li>
+                    <li><a href="/">Chat with me</a></li>
                     <li><a href="/xai">Explainable AI</a></li>
+                    <li><a href="/logout">Logout</a> </li>
                 </ul>
             </nav>
         </div>
@@ -125,7 +187,7 @@
             <a href="/xai/lr_attack" target="_blank">XAI using Logistic Regression for AttackType</a>
             <a href="/xai/rf_attack" target="_blank">XAI using Random forest for AttackType</a>
         </div>
-        <div class="content">
+        <div class="card">
             <h1>Introduction to Explainable AI (XAI) and LIME</h1>
 
             <h2>Explainable AI (XAI)</h2>
@@ -150,5 +212,8 @@
             <p>LIME’s key strengths are its model-agnostic nature (it can be applied to any machine learning model) and its focus on local interpretability, which helps users understand individual predictions even if the underlying model is complex.</p>
         </div>
     </div>
+    <footer>
+        <p>Real-Time IoT 2022 (RT-IoT2022) © 2025 | Powered by AI Network Analysis</p>
+    </footer>
 </body>
 </html>

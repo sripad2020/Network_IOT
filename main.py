@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, session, flash, render_template
+from flask import Flask, request, jsonify, session, flash, render_template, redirect, url_for
 from flask_session import Session
+from werkzeug.security import generate_password_hash, check_password_hash
 import google.generativeai as genai
 import logging
 import re
@@ -7,16 +8,9 @@ from nltk import sent_tokenize, word_tokenize, FreqDist
 from nltk.corpus import stopwords
 import nltk
 import os
-import joblib,json
-import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-import pandas as pd
-import statsmodels.api as sm
-from imblearn.over_sampling import SMOTE
+import json
 from pathlib import Path
 
-# Ensure NLTK data is downloaded
 def download_nltk_data():
     try:
         nltk.data.find('tokenizers/punkt')
@@ -31,7 +25,6 @@ def download_nltk_data():
 
 download_nltk_data()
 
-# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -39,10 +32,9 @@ app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'flask_
 app.config['SESSION_PERMANENT'] = False
 Session(app)
 
-# Set up logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Configure Gemini API
 try:
     genai.configure(api_key='AIzaSyAN5rU9-qHNGFz2ChZh_LIwwybqNEXr7tI')
     model = genai.GenerativeModel('gemini-1.5-flash')
@@ -50,7 +42,27 @@ except Exception as e:
     logging.error(f"Failed to configure Gemini API: {e}")
     raise RuntimeError("Gemini API configuration failed.")
 
-# Knowledge base
+USER_DATA_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
+def init_user_file():
+    if not os.path.exists(USER_DATA_FILE):
+        with open(USER_DATA_FILE, 'w') as f:
+            json.dump({}, f)
+
+def load_users():
+    try:
+        with open(USER_DATA_FILE, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logging.error(f"Error loading users: {e}")
+        return {}
+
+def save_users(users):
+    try:
+        with open(USER_DATA_FILE, 'w') as f:
+            json.dump(users, f, indent=2)
+    except Exception as e:
+        logging.error(f"Error saving users: {e}")
+
 knowledge_base = [
     "DDoS attacks overwhelm network resources with excessive traffic, causing service disruptions in IoT and traditional networks.",
     "Packet sniffing captures unencrypted data on networks, compromising sensitive information in IoT devices and network infrastructure.",
@@ -65,7 +77,6 @@ knowledge_base = [
 ]
 
 def clean_markdown(text: str) -> str:
-    """Remove markdown formatting from text."""
     try:
         text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)  # Remove bold
         text = re.sub(r'\*(.*?)\*', r'\1', text)  # Remove italic
@@ -109,17 +120,88 @@ def convert_paragraph_to_points(paragraph: str, num_points: int = 5) -> list:
         logging.error(f"Error in convert_paragraph_to_points: {e}")
         return [f"Error processing response: {str(e)}"] + [''] * (num_points - 1)
 
+# Signup route
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
+
+            if not username or not password:
+                flash('Username and password are required.', 'error')
+                return render_template('signup.html')
+
+            users = load_users()
+            if username in users:
+                flash('Username already exists.', 'error')
+                return render_template('signup.html')
+
+            # Hash the password
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+            users[username] = {'password': hashed_password}
+            save_users(users)
+
+            flash('Signup successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            logging.error(f"Signup error: {e}")
+            flash('Error during signup. Please try again.', 'error')
+            return render_template('signup.html')
+    return render_template('signup.html')
+
+# Login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
+
+            if not username or not password:
+                flash('Username and password are required.', 'error')
+                return render_template('login.html')
+
+            users = load_users()
+            if username not in users or not check_password_hash(users[username]['password'], password):
+                flash('Invalid username or password.', 'error')
+                return render_template('login.html')
+
+            session['username'] = username
+            flash('Login successful!', 'success')
+            return redirect(url_for('index'))
+        except Exception as e:
+            logging.error(f"Login error: {e}")
+            flash('Error during login. Please try again.', 'error')
+            return render_template('login.html')
+    return render_template('login.html')
+
+# Logout route
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    session.clear()
+    flash('Logged out successfully.', 'success')
+    return redirect(url_for('login'))
+
+# Index route (protected)
 @app.route('/')
 def index():
+    if 'username' not in session:
+        flash('Please log in to access the application.', 'error')
+        return redirect(url_for('login'))
     session['chat_history'] = session.get('chat_history', [])
     try:
-        return render_template('index.html')
+        return render_template('chat.html')
     except Exception as e:
-        logging.error(f"Error rendering index.html: {e}")
+        logging.error(f"Error rendering chat.html: {e}")
         return jsonify({'error': 'Failed to load the page.'}), 500
 
+# Chat route
 @app.route('/chat', methods=['POST'])
 def chat():
+    if 'username' not in session:
+        return jsonify({'error': 'Please log in to access this feature.'}), 401
     try:
         user_message = request.json.get('message', '').strip()
         if not user_message:
@@ -170,8 +252,8 @@ def chat():
 
         session['response_points'] = response_points
         session['chat_history'] = session.get('chat_history', []) + [
-            {'role': '', 'content': user_message},
-            {'role': '', 'content': '\n'.join(response_points)}
+            {'role': 'user', 'content': user_message},
+            {'role': 'bot', 'content': '\n'.join(response_points)}
         ]
         flash('Response generated successfully!', 'success')
         return jsonify({'response': '\n'.join(response_points)})
@@ -187,12 +269,19 @@ def chat():
         flash('Error generating response.', 'error')
         return jsonify({'error': error_message}), 500
 
+# Attack route (protected)
 @app.route('/attack', methods=['GET', 'POST'])
 def attacks():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('attack.html')
 
+# Attack submit route
 @app.route('/attack_submit', methods=['GET', 'POST'])
 def attacks_submits():
+    if 'username' not in session:
+        return jsonify({'error': 'Please log in to access this feature.'}), 401
     if request.method == 'POST':
         try:
             # Collect form inputs
@@ -240,7 +329,7 @@ def attacks_submits():
             attacks = ['ARP_Poisoning', 'DDOS_SlowLoris', 'DOS_SYN_Hping', 'MQTT_Publish', 'Metasploit_Brute_Force_SSH',
                        'Nmap_FIN_SCAN', 'NMAP_OS_DETECTION', 'NMAP_TCP_SCAN', 'NMAP_UDP_SCAN', 'NMAP_XMAS_TREE_SCAN']
 
-            # Assuming knowledge_base is defined elsewhere
+            # RAG: Augment prompt with knowledge base
             rag_context = "\n".join(knowledge_base)
 
             # Updated prompt to predict attack type and explain reasoning
@@ -269,7 +358,7 @@ def attacks_submits():
                 input_features=json.dumps(arr, indent=2)
             )
 
-            # Generate response using Gemini model (assuming model is defined)
+            # Generate response using Gemini model
             response = model.generate_content(
                 formatted_prompt,
                 generation_config={"max_output_tokens": 500}
@@ -283,9 +372,6 @@ def attacks_submits():
 
             # Store in session
             session['response_points'] = response_points
-            session['chat_history'] = session.get('chat_history', []) + [
-                {'role': '', 'content': '\n'.join(response_points)}
-            ]
             flash('Response generated successfully!', 'success')
             return jsonify({'response': '\n'.join(response_points)})
 
@@ -299,12 +385,19 @@ def attacks_submits():
             flash(f'Error processing request: {str(e)}', 'error')
             return jsonify({'error': 'Internal server error'}), 500
 
+# Protocol route (protected)
 @app.route('/protocol', methods=['GET', 'POST'])
 def protocols():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('protocol.html')
 
+# Protocol prediction route
 @app.route('/protocol_pred', methods=['GET', 'POST'])
 def pred_prot():
+    if 'username' not in session:
+        return jsonify({'error': 'Please log in to access this feature.'}), 401
     if request.method == 'POST':
         try:
             # Collect form inputs
@@ -335,7 +428,7 @@ def pred_prot():
 
             protocols = ['ICMP Protocol', 'TCP Protocol', 'UDP Protocol']
 
-            # Assuming knowledge_base is defined elsewhere
+            # RAG: Augment prompt with knowledge base
             rag_context = "\n".join(knowledge_base)
 
             # Updated prompt to predict protocol and explain reasoning
@@ -364,7 +457,7 @@ def pred_prot():
                 input_features=json.dumps(arr, indent=2)
             )
 
-            # Generate response using Gemini model (assuming model is defined)
+            # Generate response using Gemini model
             response = model.generate_content(
                 formatted_prompt,
                 generation_config={"max_output_tokens": 500}
@@ -378,9 +471,6 @@ def pred_prot():
 
             # Store in session
             session['response_points'] = response_points
-            session['chat_history'] = session.get('chat_history', []) + [
-                {'role': '', 'content': '\n'.join(response_points)}
-            ]
             flash('Response generated successfully!', 'success')
             return jsonify({'response': '\n'.join(response_points)})
 
@@ -394,28 +484,45 @@ def pred_prot():
             flash(f'Error processing request: {str(e)}', 'error')
             return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/xai',methods=['GET','POST'])
+# XAI routes (protected)
+@app.route('/xai', methods=['GET', 'POST'])
 def xai_pred():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('xai.html')
 
-@app.route('/xai/ext_proto',methods=['GET','POST'])
+@app.route('/xai/ext_proto', methods=['GET', 'POST'])
 def xai():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('ext_proto_explanation.html')
 
-@app.route('/xai/rf_proto',methods=['GET','POST'])
+@app.route('/xai/rf_proto', methods=['GET', 'POST'])
 def rf_prot():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('rf_proto_explanation.html')
 
-@app.route('/xai/lr_attack',methods=['GET','POST'])
+@app.route('/xai/lr_attack', methods=['GET', 'POST'])
 def lr_attack():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('lr_attack_explanation.html')
 
-@app.route('/xai/rf_attack',methods=['GET','POST'])
+@app.route('/xai/rf_attack', methods=['GET', 'POST'])
 def rf_attack():
+    if 'username' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
     return render_template('rf_attack_explanation.html')
 
 if __name__ == '__main__':
-    # Ensure session directory exists
+    # Ensure session and user directories exist
     session_dir = os.path.join(os.path.dirname(__file__), 'flask_session')
     os.makedirs(session_dir, exist_ok=True)
+    init_user_file()
     app.run(debug=True, host='0.0.0.0', port=5000)

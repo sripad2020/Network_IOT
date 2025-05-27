@@ -3,384 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Security Chatbot</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>IoT Network Security Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a3d, #2a4066);
-            color: #ffffff;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.7;
-        }
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-        }
-        h1 {
-            font-size: 2.8em;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-            margin-bottom: 20px;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-        #chatbox {
-            width: 100%;
-            max-width: 800px;
-            height: 60vh;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            /* Enhanced scrollbar styling */
-            scrollbar-width: thin;
-            scrollbar-color: #ff6b6b rgba(255, 255, 255, 0.1);
-            margin-bottom: 10px; /* Add space between chatbox and input */
-        }
-        /* Custom scrollbar for WebKit browsers */
-        #chatbox::-webkit-scrollbar {
-            width: 12px;
-        }
-        #chatbox::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        #chatbox::-webkit-scrollbar-thumb {
-            background-color: #ff6b6b;
-            border-radius: 10px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-        }
-        #chatbox::-webkit-scrollbar-thumb:hover {
-            background-color: #ff8787;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 10px 15px;
-            border-radius: 10px;
-            max-width: 70%;
-            word-wrap: break-word;
-            transition: all 0.3s ease;
-        }
-        .user {
-            margin-left: auto;
-            background: #ff6b6b;
-            color: #ffffff;
-            text-align: right;
-        }
-        .bot {
-            margin-right: auto;
-            background: #4a90e2;
-            color: #ffffff;
-            text-align: left;
-        }
-        .flash {
-            color: #ff4d4d;
-            text-align: center;
-            margin: 10px 0;
-            font-weight: bold;
-        }
-        .input-group {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            align-items: center;
-            padding-bottom: 10px; /* Add padding to prevent overlap */
-        }
-        #input {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 1.1em;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        #input::placeholder {
-            color: #b0b0b0;
-        }
-        #input:focus {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02);
-        }
-        #submit, #upload-btn {
-            padding: 15px 25px;
-            border: none;
-            border-radius: 25px;
-            background: #ff6b6b;
-            color: #ffffff;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        #submit:hover, #upload-btn:hover {
-            background: #ff8787;
-            transform: scale(1.05);
-        }
-        #file-input {
-            display: none;
-        }
-        footer {
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            /* Ensure footer stays visible */
-            position: relative;
-            z-index: 2;
-            /* Add scrollbar if needed */
-            overflow-x: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #ff6b6b rgba(255, 255, 255, 0.1);
-        }
-        /* Custom scrollbar for footer */
-        footer::-webkit-scrollbar {
-            height: 8px;
-        }
-        footer::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        footer::-webkit-scrollbar-thumb {
-            background-color: #ff6b6b;
-            border-radius: 4px;
-        }
-        footer a {
-            color: #ff6b6b;
-            font-size: 1.5em;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px; /* Ensure minimum width */
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            flex-shrink: 0; /* Prevent icons from shrinking */
-        }
-        footer a:hover {
-            color: #ffffff;
-            background: #ff6b6b;
-            transform: scale(1.2);
-        }
-        @keyframes glow {
-            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Responsive adjustments */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffe8d6 0%, #d6eaff 100%);
+            color: #1a1a2e;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header #branding h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ff7b25;
+        }
+
+        header nav ul {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        header nav a {
+            color: #1a1a2e;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        header nav a:hover {
+            color: #ff7b25;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #ff7b25;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .alert {
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            display: none;
+        }
+
+        .alert-success {
+            color: #16a34a;
+            background: #dcfce7;
+        }
+
+        .alert-error {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+
+        button, .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #ff7b25;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 1rem;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button:hover, .btn:hover {
+            background: #f97316;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
+            header .container {
+                flex-direction: column;
+                text-align: center;
             }
-            #chatbox {
-                height: 55vh;
+
+            header nav ul {
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 1rem;
             }
-            .input-group {
-                flex-wrap: wrap;
+
+            .card h1 {
+                font-size: 2rem;
             }
-            #input, #submit, #upload-btn {
-                width: 100%;
-            }
-            footer {
-                gap: 15px;
-                padding: 10px;
+
+            .container {
+                padding: 1rem;
             }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/kute.js@2.2.4/kute.min.js"></script>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div class="container">
-        <h1>IoT Security Chatbot</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p class="flash">{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <div id="chatbox">
-            {% for msg in session['chat_history'] %}
-                <div class="message {{ msg.role }}">{{ msg.role.capitalize() }}: {{ msg.content }}</div>
-            {% endfor %}
+    <div id="particles-js"></div>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1>Real-Time IoT 2022 (RT-IoT2022)</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/attack">Analyze Attacks</a></li>
+                    <li><a href="/protocol">Analyze Protocols</a></li>
+                    <li><a href="/xai">XAI Explanations</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                    <li><a href="/">Chat with me </a> </li>
+                </ul>
+            </nav>
         </div>
-        <div class="input-group">
-            <input type="text" id="input" placeholder="Ask about IoT networks or security...">
-            <button id="submit" onclick="sendMessage()">Submit</button>
-            <label for="file-input" id="upload-btn">Upload</label>
-            <input type="file" id="file-input" accept=".txt,.pdf,.jpg,.png">
+    </header>
+    <div class="container">
+        <div class="card">
+            <h1>Welcome, {{ session.username }}!</h1>
+            <p>IoT Network Security Dashboard</p>
+            <p>The IoT Network Security Dashboard provides real-time analysis of network traffic to enhance the security of IoT devices. Powered by advanced AI, this platform enables you to:</p>
+            <ul>
+                <li><strong>Analyze Attacks:</strong> Detect potential cyber threats by examining network traffic patterns.</li>
+                <li><strong>Analyze Protocols:</strong> Identify network protocols used in IoT traffic for better network management.</li>
+                <li><strong>XAI Explanations:</strong> Gain insights into AI model decisions using Explainable AI techniques like LIME.</li>
+            </ul>
+            <div id="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{% if category == 'error' %}error{% else %}success{% endif %} flex items-center justify-center">
+                                <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
         </div>
     </div>
     <footer>
-        <a href="https://www.iotsecurityfoundation.org/" target="_blank" title="IoT Security Foundation"><i class="fas fa-shield-alt"></i></a>
-        <a href="https://owasp.org/www-project-internet-of-things/" target="_blank" title="OWASP IoT Security"><i class="fas fa-lock"></i></a>
-        <a href="https://www.cisa.gov/topics/critical-infrastructure-security-and-resilience" target="_blank" title="CISA Cybersecurity"><i class="fas fa-network-wired"></i></a>
-        <a href="https://www.nist.gov/cybersecurity" target="_blank" title="NIST Cybersecurity"><i class="fas fa-server"></i></a>
-        <a href="https://www.sans.org/cyber-security-courses/ics-scada-cyber-security/" target="_blank" title="SANS ICS Security"><i class="fas fa-graduation-cap"></i></a>
-        <a href="https://www.iso.org/standard/44373.html" target="_blank" title="ISO/IEC 27001"><i class="fas fa-certificate"></i></a>
-        <a href="https://www.enisa.europa.eu/topics/iot-and-smart-infrastructures" target="_blank" title="ENISA IoT Security"><i class="fas fa-cloud"></i></a>
+        <p>IoT Network Security Dashboard © 2025 | Powered by AI Network Analysis</p>
     </footer>
+
     <script>
-        // Particle.js Initialization
-        particlesJS('canvas-container', {
+        // Initialize Particles.js
+        particlesJS('particles-js', {
             particles: {
-                number: { value: 100, density: { enable: true, value_area: 800 } },
-                color: { value: '#ffffff' },
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: '#ff7b25' },
                 shape: { type: 'circle' },
-                opacity: { value: 0.4, random: true },
-                size: { value: 3, random: true },
-                line_linked: { enable: true, distance: 150, color: '#ffffff', opacity: 0.3, width: 1 },
-                move: { enable: true, speed: 3, direction: 'none', random: false, straight: false, out_mode: 'out' }
+                opacity: { value: 0.7, random: true },
+                size: { value: 4, random: true },
+                line_linked: { enable: false },
+                move: {
+                    enable: true,
+                    speed: 4,
+                    direction: 'none',
+                    random: true,
+                    straight: false,
+                    out_mode: 'out'
+                }
             },
             interactivity: {
                 detect_on: 'canvas',
-                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
-                modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: true, mode: 'push' }
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 }
+                }
             },
             retina_detect: true
-        });
-
-        // Three.js Initialization
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff6b6b, wireframe: true });
-        const torusKnot = new THREE.Mesh(geometry, material);
-        scene.add(torusKnot);
-        camera.position.z = 30;
-        function animateThree() {
-            requestAnimationFrame(animateThree);
-            torusKnot.rotation.x += 0.01;
-            torusKnot.rotation.y += 0.01;
-            renderer.render(scene, camera);
-        }
-        animateThree();
-
-        // KUTE.js Animation for Buttons
-        const buttonTween = KUTE.fromTo(
-            '.input-group button, #upload-btn',
-            { scale: 1 },
-            { scale: 1.1 },
-            { duration: 500, yoyo: true, repeat: 999 }
-        );
-        document.querySelectorAll('.input-group button, #upload-btn').forEach(btn => {
-            btn.addEventListener('mouseenter', () => buttonTween.start());
-        });
-
-        // KUTE.js Animation for Footer Icons
-        const iconTween = KUTE.fromTo(
-            'footer a',
-            { scale: 1, rotate: 0 },
-            { scale: 1.2, rotate: 360 },
-            { duration: 500, yoyo: true }
-        );
-        document.querySelectorAll('footer a').forEach(icon => {
-            icon.addEventListener('mouseenter', () => iconTween.start());
-        });
-
-        // Chat Functionality
-        async function sendMessage() {
-            const input = document.getElementById('input').value;
-            if (!input) return;
-            const chatbox = document.getElementById('chatbox');
-            chatbox.innerHTML += `<div class="message user">User: ${input}</div>`;
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: input })
-                });
-                const data = await response.json();
-                if (data.error) {
-                    chatbox.innerHTML += `<div class="message bot">${data.error}</div>`;
-                } else {
-                    chatbox.innerHTML += `<div class="message bot">${data.response}</div>`;
-                }
-                KUTE.fromTo('.message:last-child', { opacity: 0, translateY: 20 }, { opacity: 1, translateY: 0 }, { duration: 500 }).start();
-            } catch (error) {
-                chatbox.innerHTML += `<div class="message bot">Error: ${error.message}</div>`;
-                KUTE.fromTo('.message:last-child', { opacity: 0, translateY: 20 }, { opacity: 1, translateY: 0 }, { duration: 500 }).start();
-            }
-            chatbox.scrollTop = chatbox.scrollHeight;
-            document.getElementById('input').value = '';
-        }
-
-        // File Upload Handling
-        document.getElementById('file-input').addEventListener('change', async function() {
-            const file = this.files[0];
-            if (!file) return;
-            const chatbox = document.getElementById('chatbox');
-            chatbox.innerHTML += `<div class="message user">User: Uploading ${file.name}</div>`;
-            const formData = new FormData();
-            formData.append('file', file);
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                chatbox.innerHTML += `<div class="message bot">${data.response || data.error}</div>`;
-                KUTE.fromTo('.message:last-child', { opacity: 0, translateY: 20 }, { opacity: 1, translateY: 0 }, { duration: 500 }).start();
-            } catch (error) {
-                chatbox.innerHTML += `<div class="message bot">Error: ${error.message}</div>`;
-                KUTE.fromTo('.message:last-child', { opacity: 0, translateY: 20 }, { opacity: 1, translateY: 0 }, { duration: 500 }).start();
-            }
-            chatbox.scrollTop = chatbox.scrollHeight;
-            this.value = '';
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Enable Enter key to submit
-        document.getElementById('input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        // Auto-scroll to bottom of chat on load
-        window.addEventListener('load', () => {
-            const chatbox = document.getElementById('chatbox');
-            chatbox.scrollTop = chatbox.scrollHeight;
         });
     </script>
 </body>

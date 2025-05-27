@@ -1,0 +1,8 @@
+{
+  "admin": {
+    "password": "pbkdf2:sha256:1000000$ngrqRx34sO8Zxkkb$8debafa437fc984f07c6191e26a16cc7d9aaeb7ef241eb373314a753d6d339ed"
+  },
+  "sripadkarthik12": {
+    "password": "pbkdf2:sha256:1000000$KDcRX5tVZFJh4rhI$3afa0b6323a3b8cc9152587ece88c550e0850ff8dd6247311a28a71fa85e8ec1"
+  }
+}
