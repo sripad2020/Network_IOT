@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAI and LIME Introduction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #0779e4 3px solid;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: left;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        header nav {
+            float: right;
+            margin-top: 10px;
+        }
+        #showcase {
+            min-height: 400px;
+            background: url('network.jpg') no-repeat 0 -400px;
+            text-align: center;
+            color: #fff;
+        }
+        #showcase h1 {
+            margin-top: 100px;
+            font-size: 55px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #showcase p {
+            font-size: 20px;
+        }
+        section {
+            padding: 20px 0;
+            border-bottom: #0779e4 1px solid;
+        }
+        section h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        section p {
+            color: #666;
+        }
+         .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .links {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .links h2 {
+            margin-top: 0;
+        }
+        .links a {
+            display: block;
+            color: #007bff;
+            text-decoration: none;
+            margin: 5px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1>Real-Time IoT 2022 (RT-IoT2022)</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/attack">Attack</a></li>
+                    <li><a href="/protocol">Protocol</a></li>
+                    <li><a href="/model_metrics">Model Analysis</a></li>
+                    <li><a href="/xai">Explainable AI</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <div class="links">
+            <h2>Additional Resources</h2>
+            <a href="/xai/ext_proto" target="_blank">XAI using Extratree Classifier for protocol</a>
+            <a href="/xai/rf_proto" target="_blank">XAI using Random forest for finding protocol</a>
+            <a href="/xai/lr_attack" target="_blank">XAI using Logistic Regression for AttackType</a>
+            <a href="/xai/rf_attack" target="_blank">XAI using Random forest for AttackType</a>
+        </div>
+        <div class="content">
+            <h1>Introduction to Explainable AI (XAI) and LIME</h1>
+
+            <h2>Explainable AI (XAI)</h2>
+            <p>Explainable AI (XAI) refers to a set of techniques and methodologies aimed at making the decision-making processes of AI systems more transparent and understandable to humans. As AI models, especially those based on deep learning and ensemble methods, become increasingly complex, their "black-box" nature makes it difficult for users to comprehend how decisions are made. This lack of transparency can be a significant barrier in critical applications such as healthcare, finance, and autonomous systems where trust and accountability are paramount.</p>
+            <p>XAI aims to bridge this gap by providing insights into how AI models arrive at their predictions or decisions. The main goals of XAI include:</p>
+            <ul>
+                <li><strong>Transparency:</strong> Providing clear explanations of how models work and how decisions are made.</li>
+                <li><strong>Trust:</strong> Enhancing user trust in AI systems by making them more understandable and reliable.</li>
+                <li><strong>Accountability:</strong> Ensuring that AI systems can be audited and held accountable for their decisions.</li>
+                <li><strong>Bias Detection:</strong> Identifying and mitigating biases in AI models to ensure fair and equitable outcomes.</li>
+            </ul>
+
+            <h2>LIME (Local Interpretable Model-agnostic Explanations)</h2>
+            <p>LIME (Local Interpretable Model-agnostic Explanations) is a popular technique within the XAI framework designed to explain the predictions of machine learning models in an interpretable manner. Developed by Marco Tulio Ribeiro, Sameer Singh, and Carlos Guestrin, LIME focuses on providing local explanations for individual predictions, rather than global explanations of the entire model.</p>
+            <p>Here’s a high-level overview of how LIME works:</p>
+            <ol>
+                <li><strong>Perturbation of Data:</strong> LIME generates a set of perturbed samples around the instance for which an explanation is needed. These perturbed samples are created by making slight modifications to the original input data.</li>
+                <li><strong>Model Prediction:</strong> The perturbed samples are then fed into the black-box model to obtain predictions. This generates a dataset of perturbed inputs along with their corresponding model outputs.</li>
+                <li><strong>Local Model Fitting:</strong> LIME fits an interpretable, usually linear, model to the perturbed dataset. This local model approximates the behavior of the black-box model in the vicinity of the instance being explained.</li>
+                <li><strong>Explanation Generation:</strong> The coefficients of the local interpretable model provide insights into which features are most influential for the prediction. This makes it easier to understand why the model made a particular decision for the specific instance.</li>
+            </ol>
+            <p>LIME’s key strengths are its model-agnostic nature (it can be applied to any machine learning model) and its focus on local interpretability, which helps users understand individual predictions even if the underlying model is complex.</p>
+        </div>
+    </div>
+</body>
+</html>
